@@ -1,7 +1,8 @@
 const actionTypes = {
-  init: '@TEMP_DATA_INIT',
-  update: '@TEMP_DATA_UPDATE',
-  destroy: '@TEMP_DATA_DESTROY',
+  init: '@@tempData/INIT',
+  update: '@@tempData/UPDATE',
+  destroy: '@@tempData/DESTROY',
+  cleanup: '@@tempData/CLEANUP',
 };
 
 export default actionTypes;
