@@ -1,15 +1,17 @@
-import { TempDataState } from "./reducer";
+import { TempDataRootState, SelectorFunction } from "./types";
 
-export function getTempData<T, I = T>(
-  state: TempDataState,
+export function getTempData<T, U = T>(
+  state: TempDataRootState,
   name: string,
-  selector?: (temp: T) => I
-): I | undefined {
-  const temp = state.tempData[name] as unknown;
+  selector?: SelectorFunction<T, U>
+): U | undefined {
+  const tempData = state.tempData[name];
 
-  if (temp && selector) {
-    return selector(temp as T);
+  if (!tempData) {
+    return;
   }
 
-  return temp as I;
+  return selector ? selector(tempData.data as T) : (tempData.data as U);
 }
+
+export default getTempData;
