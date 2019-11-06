@@ -1,13 +1,27 @@
 import { TempDataRootState, SelectorFunction } from "./types";
 
-export function getTempData<T, U = T>(
+// An overload to get data just with name
+function getTempData<T>(
+  state: TempDataRootState,
+  name: string
+): T | undefined;
+
+// Another overload to get data with name and selector function
+function getTempData<T, U>(
+  state: TempDataRootState,
+  name: string,
+  selector: SelectorFunction<T, U>
+): U | undefined;
+
+// The main data selector implementation
+function getTempData<T, U>(
   state: TempDataRootState,
   name: string,
   selector?: SelectorFunction<T, U>
 ): U | undefined {
   const tempData = state.tempData[name];
 
-  if (!tempData) {
+  if (tempData === undefined) {
     return;
   }
 
