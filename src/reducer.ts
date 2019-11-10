@@ -6,6 +6,7 @@ import {
   CleanupTempDataAction
 } from "./actions";
 import actionTypes from "./actionTypes";
+import { isBothArray, isBothObject } from "./helpers";
 
 function reducer(
   state: TempDataState = {},
@@ -46,13 +47,13 @@ function reducer(
 
       let newData;
       if (updateAction.appendDataIfPossible) {
-        if (
-          typeof oldState.data === "object" &&
-          typeof updateAction.data === "object"
-        ) {
-          newData = { ...oldState.data, ...updateAction.data };
-        } else if (Array.isArray(oldState.data) && Array.isArray(updateAction.data)) {
-          newData = [...oldState.data, ...updateAction.data];
+        if (isBothArray(oldState.data, updateAction.data)) {
+          newData = [
+            ...(oldState.data as unknown[]),
+            ...(updateAction.data as unknown[])
+          ];
+        } else if (isBothObject(oldState.data, updateAction.data)) {
+          newData = { ...(oldState.data as object), ...(updateAction.data as object) };
         } else {
           newData = updateAction.data;
         }
