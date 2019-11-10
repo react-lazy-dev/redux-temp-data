@@ -13,14 +13,28 @@ export function getTempRecord(
   return tempData;
 }
 
-export function getTempData<T, U = T>(
+// An overload to get data just with name
+export function getTempData<T>(
+  state: TempDataRootState,
+  name: string
+): T | undefined;
+
+// Another overload to get data with name and selector function
+export function getTempData<T, U>(
+  state: TempDataRootState,
+  name: string,
+  selector: SelectorFunction<T, U>
+): U | undefined;
+
+// The main data selector implementation
+export function getTempData<T, U>(
   state: TempDataRootState,
   name: string,
   selector?: SelectorFunction<T, U>
 ): U | undefined {
   const tempData = getTempRecord(state, name);
 
-  if (!tempData) {
+  if (tempData === undefined) {
     return;
   }
 
