@@ -9,11 +9,20 @@ import actionTypes from "./actionTypes";
 
 function reducer(
   state: TempDataState = {},
-  action: InitTempDataAction | UpdateTempDataAction | DestroyTempDataAction | CleanupTempDataAction
+  action:
+    | InitTempDataAction
+    | UpdateTempDataAction
+    | DestroyTempDataAction
+    | CleanupTempDataAction
 ) {
   switch (action.type) {
     case actionTypes.init: {
       const initAction = action as InitTempDataAction;
+
+      if (state[initAction.name]) {
+        throw new Error("The `" + initAction.name + "` record exists.");
+      }
+
       return {
         ...state,
         [initAction.name]: {
@@ -33,17 +42,17 @@ function reducer(
             "` record does not initialize yet. You have to init a record before updating it."
         );
       }
-      const oldData = state[updateAction.name].data;
-      
+      const oldState = state[updateAction.name];
+
       let newData;
       if (updateAction.appendDataIfPossible) {
         if (
-          typeof oldData === "object" &&
+          typeof oldState.data === "object" &&
           typeof updateAction.data === "object"
         ) {
-          newData = { ...oldData, ...updateAction.data };
-        } else if (Array.isArray(oldData) && Array.isArray(updateAction.data)) {
-          newData = [...oldData, ...updateAction.data];
+          newData = { ...oldState.data, ...updateAction.data };
+        } else if (Array.isArray(oldState.data) && Array.isArray(updateAction.data)) {
+          newData = [...oldState.data, ...updateAction.data];
         } else {
           newData = updateAction.data;
         }
@@ -54,7 +63,7 @@ function reducer(
       return {
         ...state,
         [updateAction.name]: {
-          ...oldData,
+          ...oldState,
           data: newData
         }
       };
@@ -69,8 +78,8 @@ function reducer(
 
     case actionTypes.cleanup: {
       const cleanupAction = action as CleanupTempDataAction;
-      const newState = {...state};
-      const pathname = cleanupAction.location.pathname
+      const newState = { ...state };
+      const pathname = cleanupAction.location.pathname;
 
       for (const name in newState) {
         if (newState[name].validRoutes.length > 0) {
@@ -82,7 +91,7 @@ function reducer(
               break;
             }
           }
-    
+
           if (!isValid) {
             delete newState[name];
           }
