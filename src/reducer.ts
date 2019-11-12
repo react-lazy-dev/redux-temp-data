@@ -80,6 +80,7 @@ function reducer(
       const cleanupAction = action as CleanupTempDataAction;
       const newState = { ...state };
       const pathname = cleanupAction.location.pathname;
+      let isChanged = false;
 
       for (const name in newState) {
         if (newState[name].validRoutes.length > 0) {
@@ -94,11 +95,12 @@ function reducer(
 
           if (!isValid) {
             delete newState[name];
+            isChanged = true;
           }
         }
       }
 
-      return newState;
+      return isChanged ? newState : state;
     }
 
     default:
