@@ -38,8 +38,8 @@ describe("The getTempValidRoutes tests", () => {
     expect(getTempValidRoutes(state, tempDataName)).toBe(validRoutes);
   });
 
-  test("It should return an empty array if the record doest not exist", () => {
-    expect(getTempValidRoutes(state, "invalidName")).toEqual([]);
+  test("It should return undefined if the record doest not exist", () => {
+    expect(getTempValidRoutes(state, "invalidName")).toBeUndefined();
   });
 });
 

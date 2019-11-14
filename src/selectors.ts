@@ -45,7 +45,7 @@ export function getTempValidRoutes(state: TempDataRootState, name: string) {
   const tempData = getTempRecord(state, name);
 
   if (!tempData) {
-    return [];
+    return;
   }
 
   return tempData.validRoutes;
