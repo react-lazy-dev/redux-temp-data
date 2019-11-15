@@ -10,3 +10,9 @@ export interface TempDataRootState {
 }
 
 export type SelectorFunction<T, U> = (data: T) => U;
+
+export enum UpdateMode {
+  Replace = 1,
+  Append,
+  Prepend,
+}
