@@ -1,18 +1,33 @@
 import React from "react";
 import useTempData from "./useTempData";
+import { SelectorFunction } from "./types";
 
 interface Props<T> {
   tempData: T;
 }
 
-function withTempData<T, I = T, J extends Props<I> = Props<I>>(
-  Component: React.ComponentType<J>,
-  name: string,
-  selector?: (temp: T) => I
-) {
-  const temp = useTempData(name, selector);
+// An overload to get data just with name
+function withTempData<T, V extends Props<T> = Props<T>>(
+  Component: React.ComponentType<V>,
+  name: string
+): React.ComponentType<V>;
 
-  return function(props: J) {
+// Another overload to get data with name and selector function
+function withTempData<T, U, V extends Props<U> = Props<U>>(
+  Component: React.ComponentType<V>,
+  name: string,
+  selector: SelectorFunction<T, U>
+): React.ComponentType<V>;
+
+// The main HOC implementation
+function withTempData<T, U, V extends Props<U> = Props<U>>(
+  Component: React.ComponentType<V>,
+  name: string,
+  selector?: SelectorFunction<T, U>
+): React.ComponentType<V> {
+  const temp = useTempData(name, selector!);
+
+  return function(props: V) {
     return <Component tempData={temp} {...props} />;
   };
 }
