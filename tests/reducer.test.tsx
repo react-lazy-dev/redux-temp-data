@@ -1,5 +1,6 @@
 import reducer from "../src/reducer";
-import { initTempData } from "../src/actions";
+import { initTempData, updateTempData } from "../src/actions";
+import { isBothArray, isBothObject } from "../src/helpers";
 
 const tempDataName1 = "temp-data-name-1";
 const tempData1 = {
@@ -13,6 +14,9 @@ const tempData2 = true;
 
 const tempDataName3 = "temp-data-name-3";
 const tempData3 = "A sample string";
+
+const tempDataName4 = "temp-data-name-4";
+const tempData4 = ["i1", "i2"];
 
 const validRoutes = ["r1", "r2", "r3"];
 
@@ -46,5 +50,65 @@ describe("The initTempData action tests", () => {
     );
     expect(state[tempDataName1].data).toBe(tempData1);
     expect(state[tempDataName1].validRoutes).toBe(validRoutes);
+  });
+});
+
+describe("The updateTempData action tests", () => {
+  test("It should raise an error if there is no record with the name", () => {
+    expect(() => {
+      reducer({}, updateTempData(tempDataName1, tempData2));
+    }).toThrowError();
+  });
+
+  test("It should update the record data correctly and does not affect the valid routes", () => {
+    const state1 = reducer(
+      {},
+      initTempData(tempDataName1, tempData1, validRoutes)
+    );
+    const state2 = reducer(state1, updateTempData(tempDataName1, tempData2));
+    expect(state2[tempDataName1].data).toBe(tempData2);
+    expect(state2[tempDataName1].validRoutes).toBe(validRoutes);
+  });
+
+  test("It should replace the record data by default regardless of the data type", () => {
+    const finalValues = [tempData1, tempData2, tempData3, tempData4];
+    const initialValues = [{ init1: "init 1" }, ["init 2", "init 3"]];
+    initialValues.forEach(initValue => {
+      finalValues.forEach(finalValue => {
+        const state1 = reducer({}, initTempData(tempDataName4, initValue));
+        const state2 = reducer(
+          state1,
+          updateTempData(tempDataName4, finalValue)
+        );
+        expect(state2[tempDataName4].data).toBe(finalValue);
+      });
+    });
+  });
+
+  test("It should try to append new value if the both previous and data types is object/array and appendDataIfPossible = true", () => {
+    const finalValues = [tempData1, tempData2, tempData3, tempData4];
+    const initialValues = [
+      true,
+      "sample string",
+      { init1: "init 1" },
+      ["init 2", "init 3"]
+    ];
+    initialValues.forEach(initValue => {
+      finalValues.forEach(finalValue => {
+        const state1 = reducer({}, initTempData(tempDataName4, initValue));
+        const state2 = reducer(
+          state1,
+          updateTempData(tempDataName4, finalValue, true)
+        );
+
+        if (isBothArray(initValue, finalValue)) {
+          expect(state2[tempDataName4].data).toEqual([...(initValue as unknown[]), ...(finalValue as unknown[])]);
+        } else if( isBothObject(initValue, finalValue) ) {
+          expect(state2[tempDataName4].data).toEqual({...(initValue as object), ...(finalValue as object)});
+        } else {
+          expect(state2[tempDataName4].data).toBe(finalValue);
+        }
+      });
+    });
   });
 });

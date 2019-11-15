@@ -16,7 +16,7 @@ export type InitTempDataAction = ReturnType<typeof initTempData>;
 export const updateTempData = <T>(
   name: string,
   data: T,
-  appendDataIfPossible = true
+  appendDataIfPossible = false
 ) => ({
   type: actionTypes.update,
   name,
