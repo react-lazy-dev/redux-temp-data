@@ -1,5 +1,5 @@
 import reducer from "../src/reducer";
-import { initTempData, updateTempData } from "../src/actions";
+import { initTempData, updateTempData, destroyTempData } from "../src/actions";
 import {
   isBothArray,
   isBothObject,
@@ -133,5 +133,21 @@ describe("The updateTempData action tests", () => {
         });
       });
     });
+  });
+});
+
+describe("The destroyTempData action tests", () => {
+  test("It should remove the record correctly", () => {
+    const state1 = reducer({}, initTempData(tempDataName1, tempData1));
+    const state2 = reducer(state1, initTempData(tempDataName2, tempData2));
+    const state3 = reducer(state2, destroyTempData(tempDataName1));
+    expect(state3[tempDataName1]).toBeUndefined();
+    expect(state3[tempDataName2]).toBeDefined();
+  });
+
+  test("It does not raise an error if the record is not exist", () => {
+    expect(() => {
+      reducer({}, destroyTempData(tempDataName1));
+    }).not.toThrowError();
   });
 });
