@@ -1,6 +1,18 @@
 import reducer from "../src/reducer";
-import { initTempData, cleanupTempData } from "../src/actions";
 import { Location } from "history";
+import {
+  initTempData,
+  updateTempData,
+  destroyTempData,
+  cleanupTempData
+} from "../src/actions";
+import {
+  isBothArray,
+  isBothObject,
+  getUpdatedArray,
+  getUpdatedObject
+} from "../src/helpers";
+import { UpdateMode } from "../src/types";
 
 const tempDataName1 = "temp-data-name-1";
 const tempData1 = {
@@ -14,6 +26,9 @@ const tempData2 = true;
 
 const tempDataName3 = "temp-data-name-3";
 const tempData3 = "A sample string";
+
+const tempDataName4 = "temp-data-name-4";
+const tempData4 = ["i1", "i2"];
 
 const validRoutes = ["r1", "r2", "r3"];
 
@@ -50,28 +65,137 @@ describe("The initTempData action tests", () => {
   });
 });
 
+describe("The updateTempData action tests", () => {
+  test("It should raise an error if there is no record with the name", () => {
+    expect(() => {
+      reducer({}, updateTempData(tempDataName1, tempData2));
+    }).toThrowError();
+  });
+
+  test("It should update the record data correctly and does not affect the valid routes", () => {
+    const state1 = reducer(
+      {},
+      initTempData(tempDataName1, tempData1, validRoutes)
+    );
+    const state2 = reducer(state1, updateTempData(tempDataName1, tempData2));
+    expect(state2[tempDataName1].data).toBe(tempData2);
+    expect(state2[tempDataName1].validRoutes).toBe(validRoutes);
+  });
+
+  test("It should replace the record data by default regardless of the data type", () => {
+    const finalValues = [tempData1, tempData2, tempData3, tempData4];
+    const initialValues = [{ init1: "init 1" }, ["init 2", "init 3"]];
+    initialValues.forEach(initValue => {
+      finalValues.forEach(finalValue => {
+        const state1 = reducer({}, initTempData(tempDataName4, initValue));
+        const state2 = reducer(
+          state1,
+          updateTempData(tempDataName4, finalValue)
+        );
+        expect(state2[tempDataName4].data).toBe(finalValue);
+      });
+    });
+  });
+
+  test("It should try to append/prepend new value if the both previous and data types is object/array and mode != UpdateMode.Replace", () => {
+    const updateModes = [UpdateMode.Append, UpdateMode.Prepend];
+    const finalValues = [tempData1, tempData2, tempData3, tempData4];
+    const initialValues = [
+      true,
+      "sample string",
+      {
+        init1: "init 1",
+        sampleKey2: "sampleValue2"
+      },
+      ["init 2", "init 3"]
+    ];
+    initialValues.forEach(initValue => {
+      finalValues.forEach(finalValue => {
+        updateModes.forEach(updateMode => {
+          const state1 = reducer({}, initTempData(tempDataName4, initValue));
+          const state2 = reducer(
+            state1,
+            updateTempData(tempDataName4, finalValue, updateMode)
+          );
+          if (isBothArray(initValue, finalValue)) {
+            expect(state2[tempDataName4].data).toEqual(
+              getUpdatedArray(
+                updateMode,
+                initValue as unknown[],
+                finalValue as unknown[]
+              )
+            );
+          } else if (isBothObject(initValue, finalValue)) {
+            expect(state2[tempDataName4].data).toEqual(
+              getUpdatedObject(
+                updateMode,
+                initValue as object,
+                finalValue as object
+              )
+            );
+          } else {
+            expect(state2[tempDataName4].data).toBe(finalValue);
+          }
+        });
+      });
+    });
+  });
+});
+
+describe("The destroyTempData action tests", () => {
+  test("It should remove the record correctly", () => {
+    const state1 = reducer({}, initTempData(tempDataName1, tempData1));
+    const state2 = reducer(state1, initTempData(tempDataName2, tempData2));
+    const state3 = reducer(state2, destroyTempData(tempDataName1));
+    expect(state3[tempDataName1]).toBeUndefined();
+    expect(state3[tempDataName2]).toBeDefined();
+  });
+
+  test("It does not raise an error if the record is not exist", () => {
+    expect(() => {
+      reducer({}, destroyTempData(tempDataName1));
+    }).not.toThrowError();
+  });
+});
+
 describe("The cleanupTempData action tests", () => {
-  const state1 = reducer({}, initTempData(tempDataName1, tempData1, ['/address1', '/address2/pathname']));
-  const state2 = reducer(state1, initTempData(tempDataName2, tempData2, ['/address1', '/address3/about/', '/address4']));
+  const state1 = reducer(
+    {},
+    initTempData(tempDataName1, tempData1, ["/address1", "/address2/pathname"])
+  );
+  const state2 = reducer(
+    state1,
+    initTempData(tempDataName2, tempData2, [
+      "/address1",
+      "/address3/about/",
+      "/address4"
+    ])
+  );
   const state3 = reducer(state2, initTempData(tempDataName3, tempData3));
 
-  const createTestHistory = (pathname: string) => ({ pathname }) as Location
+  const createTestHistory = (pathname: string) => ({ pathname } as Location);
 
   test("It should cleanup only invalid records", () => {
-    const state4 = reducer(state3, cleanupTempData(createTestHistory('/address4')));
+    const state4 = reducer(
+      state3,
+      cleanupTempData(createTestHistory("/address4"))
+    );
     expect(state4).not.toHaveProperty(tempDataName1);
     expect(state4).toHaveProperty(tempDataName2);
     expect(state4).toHaveProperty(tempDataName3);
   });
 
   test("It does not raise an error if all records are valid", () => {
-    const state4 = reducer(state3, cleanupTempData(createTestHistory('/address1')));
+    const state4 = reducer(
+      state3,
+      cleanupTempData(createTestHistory("/address1"))
+    );
     expect(state4).toBe(state3);
   });
 
   test("It does not raise an error if there is no record", () => {
     expect(() => {
-      reducer({}, cleanupTempData(createTestHistory('/temp')));
+      reducer({}, cleanupTempData(createTestHistory("/temp")));
     }).not.toThrowError();
   });
 });
