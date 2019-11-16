@@ -1,5 +1,6 @@
 import actionTypes from "./actionTypes";
 import { Location } from "history";
+import { UpdateMode } from "./types";
 
 export const initTempData = <T>(
   name: string,
@@ -16,12 +17,12 @@ export type InitTempDataAction = ReturnType<typeof initTempData>;
 export const updateTempData = <T>(
   name: string,
   data: T,
-  appendDataIfPossible = true
+  updateMode = UpdateMode.Replace
 ) => ({
   type: actionTypes.update,
   name,
   data,
-  appendDataIfPossible
+  updateMode
 });
 export type UpdateTempDataAction = ReturnType<typeof updateTempData>;
 

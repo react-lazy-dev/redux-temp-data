@@ -1,4 +1,4 @@
-import { TempDataState } from "./types";
+import { TempDataState, UpdateMode } from "./types";
 import {
   InitTempDataAction,
   UpdateTempDataAction,
@@ -6,6 +6,12 @@ import {
   CleanupTempDataAction
 } from "./actions";
 import actionTypes from "./actionTypes";
+import {
+  isBothArray,
+  isBothObject,
+  getUpdatedArray,
+  getUpdatedObject
+} from "./helpers";
 
 function reducer(
   state: TempDataState = {},
@@ -45,14 +51,19 @@ function reducer(
       const oldState = state[updateAction.name];
 
       let newData;
-      if (updateAction.appendDataIfPossible) {
-        if (
-          typeof oldState.data === "object" &&
-          typeof updateAction.data === "object"
-        ) {
-          newData = { ...oldState.data, ...updateAction.data };
-        } else if (Array.isArray(oldState.data) && Array.isArray(updateAction.data)) {
-          newData = [...oldState.data, ...updateAction.data];
+      if (updateAction.updateMode !== UpdateMode.Replace) {
+        if (isBothArray(oldState.data, updateAction.data)) {
+          newData = getUpdatedArray(
+            updateAction.updateMode,
+            oldState.data as unknown[],
+            updateAction.data as unknown[]
+          );
+        } else if (isBothObject(oldState.data, updateAction.data)) {
+          newData = getUpdatedObject(
+            updateAction.updateMode,
+            oldState.data as object,
+            updateAction.data as object
+          );
         } else {
           newData = updateAction.data;
         }

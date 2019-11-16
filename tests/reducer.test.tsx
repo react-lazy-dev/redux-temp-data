@@ -1,5 +1,12 @@
 import reducer from "../src/reducer";
-import { initTempData, destroyTempData } from "../src/actions";
+import { initTempData, updateTempData, destroyTempData } from "../src/actions";
+import {
+  isBothArray,
+  isBothObject,
+  getUpdatedArray,
+  getUpdatedObject
+} from "../src/helpers";
+import { UpdateMode } from "../src/types";
 
 const tempDataName1 = "temp-data-name-1";
 const tempData1 = {
@@ -13,6 +20,9 @@ const tempData2 = true;
 
 const tempDataName3 = "temp-data-name-3";
 const tempData3 = "A sample string";
+
+const tempDataName4 = "temp-data-name-4";
+const tempData4 = ["i1", "i2"];
 
 const validRoutes = ["r1", "r2", "r3"];
 
@@ -46,6 +56,83 @@ describe("The initTempData action tests", () => {
     );
     expect(state[tempDataName1].data).toBe(tempData1);
     expect(state[tempDataName1].validRoutes).toBe(validRoutes);
+  });
+});
+
+describe("The updateTempData action tests", () => {
+  test("It should raise an error if there is no record with the name", () => {
+    expect(() => {
+      reducer({}, updateTempData(tempDataName1, tempData2));
+    }).toThrowError();
+  });
+
+  test("It should update the record data correctly and does not affect the valid routes", () => {
+    const state1 = reducer(
+      {},
+      initTempData(tempDataName1, tempData1, validRoutes)
+    );
+    const state2 = reducer(state1, updateTempData(tempDataName1, tempData2));
+    expect(state2[tempDataName1].data).toBe(tempData2);
+    expect(state2[tempDataName1].validRoutes).toBe(validRoutes);
+  });
+
+  test("It should replace the record data by default regardless of the data type", () => {
+    const finalValues = [tempData1, tempData2, tempData3, tempData4];
+    const initialValues = [{ init1: "init 1" }, ["init 2", "init 3"]];
+    initialValues.forEach(initValue => {
+      finalValues.forEach(finalValue => {
+        const state1 = reducer({}, initTempData(tempDataName4, initValue));
+        const state2 = reducer(
+          state1,
+          updateTempData(tempDataName4, finalValue)
+        );
+        expect(state2[tempDataName4].data).toBe(finalValue);
+      });
+    });
+  });
+
+  test("It should try to append/prepend new value if the both previous and data types is object/array and mode != UpdateMode.Replace", () => {
+    const updateModes = [UpdateMode.Append, UpdateMode.Prepend];
+    const finalValues = [tempData1, tempData2, tempData3, tempData4];
+    const initialValues = [
+      true,
+      "sample string",
+      {
+        init1: "init 1",
+        sampleKey2: "sampleValue2"
+      },
+      ["init 2", "init 3"]
+    ];
+    initialValues.forEach(initValue => {
+      finalValues.forEach(finalValue => {
+        updateModes.forEach(updateMode => {
+          const state1 = reducer({}, initTempData(tempDataName4, initValue));
+          const state2 = reducer(
+            state1,
+            updateTempData(tempDataName4, finalValue, updateMode)
+          );
+          if (isBothArray(initValue, finalValue)) {
+            expect(state2[tempDataName4].data).toEqual(
+              getUpdatedArray(
+                updateMode,
+                initValue as unknown[],
+                finalValue as unknown[]
+              )
+            );
+          } else if (isBothObject(initValue, finalValue)) {
+            expect(state2[tempDataName4].data).toEqual(
+              getUpdatedObject(
+                updateMode,
+                initValue as object,
+                finalValue as object
+              )
+            );
+          } else {
+            expect(state2[tempDataName4].data).toBe(finalValue);
+          }
+        });
+      });
+    });
   });
 });
 
