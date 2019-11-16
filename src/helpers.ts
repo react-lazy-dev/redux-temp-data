@@ -5,7 +5,7 @@ export function isBothArray(value1: unknown, value2: unknown) {
 }
 
 export function isBothObject(value1: unknown, value2: unknown) {
-  return typeof value1 === "object" && typeof value2 === "object";
+  return isPlainObject(value1) && isPlainObject(value2);
 }
 
 export function hasSameArrayOrObjectType(value1: unknown, value2: unknown) {
@@ -38,4 +38,13 @@ export function getUpdatedObject(
   } else {
     return newObject;
   }
+}
+
+export function isPlainObject(obj: unknown) {
+  return (
+    typeof obj === "object" && // separate from primitives
+    obj !== null && // is obvious
+    obj.constructor === Object && // separate instances (Array, DOM, ...)
+    Object.prototype.toString.call(obj) === "[object Object]"
+  ); // separate build-in like Math
 }
