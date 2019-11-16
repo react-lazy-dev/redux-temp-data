@@ -1,5 +1,11 @@
 import reducer from "../src/reducer";
-import { initTempData, updateTempData, destroyTempData } from "../src/actions";
+import { Location } from "history";
+import {
+  initTempData,
+  updateTempData,
+  destroyTempData,
+  cleanupTempData
+} from "../src/actions";
 import {
   isBothArray,
   isBothObject,
@@ -148,6 +154,48 @@ describe("The destroyTempData action tests", () => {
   test("It does not raise an error if the record is not exist", () => {
     expect(() => {
       reducer({}, destroyTempData(tempDataName1));
+    }).not.toThrowError();
+  });
+});
+
+describe("The cleanupTempData action tests", () => {
+  const state1 = reducer(
+    {},
+    initTempData(tempDataName1, tempData1, ["/address1", "/address2/pathname"])
+  );
+  const state2 = reducer(
+    state1,
+    initTempData(tempDataName2, tempData2, [
+      "/address1",
+      "/address3/about/",
+      "/address4"
+    ])
+  );
+  const state3 = reducer(state2, initTempData(tempDataName3, tempData3));
+
+  const createTestHistory = (pathname: string) => ({ pathname } as Location);
+
+  test("It should cleanup only invalid records", () => {
+    const state4 = reducer(
+      state3,
+      cleanupTempData(createTestHistory("/address4"))
+    );
+    expect(state4).not.toHaveProperty(tempDataName1);
+    expect(state4).toHaveProperty(tempDataName2);
+    expect(state4).toHaveProperty(tempDataName3);
+  });
+
+  test("It does not raise an error if all records are valid", () => {
+    const state4 = reducer(
+      state3,
+      cleanupTempData(createTestHistory("/address1"))
+    );
+    expect(state4).toBe(state3);
+  });
+
+  test("It does not raise an error if there is no record", () => {
+    expect(() => {
+      reducer({}, cleanupTempData(createTestHistory("/temp")));
     }).not.toThrowError();
   });
 });
