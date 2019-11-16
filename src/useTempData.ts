@@ -1,13 +1,23 @@
 import { useSelector, shallowEqual } from "react-redux";
-import { TempDataState } from "./reducer";
-import { getTempData } from "./selector";
+import { TempDataRootState, SelectorFunction } from "./types";
+import { getTempData } from "./selectors";
 
-function useTempData<T, I = T>(
+// An overload to get data just with name
+function useTempData<T>(name: string): T | undefined;
+
+// Another overload to get data with name and selector function
+function useTempData<T, U>(
   name: string,
-  selector?: (temp: T) => I
-): I | undefined {
+  selector: SelectorFunction<T, U>
+): U | undefined;
+
+// The main hook implementation
+function useTempData<T, U>(
+  name: string,
+  selector?: SelectorFunction<T, U>
+): U | undefined {
   const tempData = useSelector(
-    (state: TempDataState) => getTempData<T, I>(state, name, selector),
+    (state: TempDataRootState) => getTempData<T, U>(state, name, selector!),
     shallowEqual
   );
 

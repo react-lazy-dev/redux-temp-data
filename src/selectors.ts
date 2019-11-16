@@ -1,9 +1,6 @@
 import { TempDataRootState, SelectorFunction } from "./types";
 
-export function getTempRecord(
-  state: TempDataRootState,
-  name: string
-) {
+export function getTempRecord(state: TempDataRootState, name: string) {
   const tempData = state.tempData[name];
 
   if (!tempData) {
