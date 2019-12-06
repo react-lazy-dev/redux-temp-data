@@ -25,6 +25,8 @@ describe("The setupCleanup tests", () => {
     historyListen.mock.calls[0][0](location);
 
     // a new action must be dispatched to cleanup expired records
-    expect(storeDispatch).toBeCalledWith(cleanupTempData(location as Location));
+    expect(storeDispatch).toBeCalledWith(
+      cleanupTempData(location as Location, storeDispatch)
+    );
   });
 });

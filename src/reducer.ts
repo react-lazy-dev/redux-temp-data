@@ -33,7 +33,8 @@ function reducer(
         ...state,
         [initAction.name]: {
           data: initAction.initialData,
-          validRoutes: initAction.validRoutes
+          validRoutes: initAction.validRoutes,
+          cleanupAction: initAction.cleanupAction
         }
       };
     }
@@ -105,6 +106,9 @@ function reducer(
           }
 
           if (!isValid) {
+            if (newState[name].cleanupAction) {
+              cleanupAction.dispatch(newState[name].cleanupAction!);
+            }
             delete newState[name];
             isChanged = true;
           }

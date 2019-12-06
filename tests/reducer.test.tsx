@@ -159,9 +159,15 @@ describe("The destroyTempData action tests", () => {
 });
 
 describe("The cleanupTempData action tests", () => {
+  const customAction = { type: "custom", args: [1, 2, 3] };
   const state1 = reducer(
     {},
-    initTempData(tempDataName1, tempData1, ["/address1", "/address2/pathname"])
+    initTempData(
+      tempDataName1,
+      tempData1,
+      ["/address1", "/address2/pathname"],
+      customAction
+    )
   );
   const state2 = reducer(
     state1,
@@ -175,27 +181,31 @@ describe("The cleanupTempData action tests", () => {
 
   const createTestHistory = (pathname: string) => ({ pathname } as Location);
 
-  test("It should cleanup only invalid records", () => {
+  test("It should cleanup only invalid records and dispatch cleanupAction", () => {
+    const dispatch = jest.fn();
     const state4 = reducer(
       state3,
-      cleanupTempData(createTestHistory("/address4"))
+      cleanupTempData(createTestHistory("/address4"), dispatch)
     );
     expect(state4).not.toHaveProperty(tempDataName1);
     expect(state4).toHaveProperty(tempDataName2);
     expect(state4).toHaveProperty(tempDataName3);
+    expect(dispatch).toHaveBeenCalledWith(customAction);
   });
 
   test("It does not raise an error if all records are valid", () => {
+    const dispatch = jest.fn();
     const state4 = reducer(
       state3,
-      cleanupTempData(createTestHistory("/address1"))
+      cleanupTempData(createTestHistory("/address1"), dispatch)
     );
     expect(state4).toBe(state3);
   });
 
   test("It does not raise an error if there is no record", () => {
+    const dispatch = jest.fn();
     expect(() => {
-      reducer({}, cleanupTempData(createTestHistory("/temp")));
+      reducer({}, cleanupTempData(createTestHistory("/temp"), dispatch));
     }).not.toThrowError();
   });
 });
