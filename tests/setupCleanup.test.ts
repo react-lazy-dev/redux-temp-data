@@ -1,8 +1,9 @@
-import { History, Location } from "history";
+import { History } from "history";
 import { Store } from "redux";
 import setupCleanup from "../src/setupCleanup";
 import { TempDataRootState } from "../src/types";
-import { cleanupTempData } from "../src/actions";
+import { CleanupTempDataAction } from "../src/actions";
+import actionTypes from "../src/actionTypes";
 
 describe("The setupCleanup tests", () => {
   test("It should subscribe to history change and dispatch the cleanupTempData on history change", () => {
@@ -25,8 +26,7 @@ describe("The setupCleanup tests", () => {
     historyListen.mock.calls[0][0](location);
 
     // a new action must be dispatched to cleanup expired records
-    expect(storeDispatch).toBeCalledWith(
-      cleanupTempData(location as Location, storeDispatch)
-    );
+    const action: CleanupTempDataAction = storeDispatch.mock.calls[0][0];
+    expect(action.type).toBe(actionTypes.cleanup);
   });
 });
