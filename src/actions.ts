@@ -1,16 +1,19 @@
 import actionTypes from "./actionTypes";
 import { Location } from "history";
 import { UpdateMode } from "./types";
+import { Action, Dispatch } from "redux";
 
 export const initTempData = <T>(
   name: string,
-  initialData: T,
-  validRoutes: string[] = []
+  initialData?: T,
+  validRoutes: string[] = [],
+  cleanupAction?: Action
 ) => ({
   type: actionTypes.init,
   name,
   initialData,
-  validRoutes
+  validRoutes,
+  cleanupAction
 });
 export type InitTempDataAction = ReturnType<typeof initTempData>;
 
@@ -32,8 +35,9 @@ export const destroyTempData = (name: string) => ({
 });
 export type DestroyTempDataAction = ReturnType<typeof destroyTempData>;
 
-export const cleanupTempData = (location: Location) => ({
+export const cleanupTempData = (location: Location, dispatch: Dispatch) => ({
   type: actionTypes.cleanup,
-  location
+  location,
+  dispatch
 });
 export type CleanupTempDataAction = ReturnType<typeof cleanupTempData>;
